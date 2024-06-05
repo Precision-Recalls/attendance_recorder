@@ -7,23 +7,28 @@ import numpy as np
 import tensorflow.keras.backend as K
 import yt_dlp
 from PIL import Image
-# from facenet_pytorch.models.mtcnn import MTCNN
 from keras.models import load_model
 from mtcnn import MTCNN
 from tensorflow.keras.applications.imagenet_utils import preprocess_input
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from yt_dlp.utils import download_range_func
 
-# Load necessary models and objects
 from src.utils.FaceEmbeddingModel import load_face_embedding_model
 from src.utils.RecordAttendance import takeAttendance
+from src.utils.config_loader import load_config
 
-vgg_face_model_weight_file_path = 'assets/models/vgg_face_weights.h5'
+# Load the configuration
+config = load_config('config.ini')
+
+# Extract values from the config
+vgg_face_model_weight_file_path = config['paths']['vgg_face_model_weight_file_path']
+classifier_model_path = config['paths']['classifier_model_path']
+person_rep_path = config['paths']['person_rep_path']
+
 detector = MTCNN(steps_threshold=[0.80, 0.85, 0.9])
 vgg_face_model = load_face_embedding_model(vgg_face_model_weight_file_path)
-classifier_model = load_model('assets/models/face_classifier.h5')
-person_rep = pickle.load(open(r'assets/names_mapping.pkl', 'rb'))
-
+classifier_model = load_model(classifier_model_path)
+person_rep = pickle.load(open(person_rep_path, 'rb'))
 
 def download_video(video_link):
     start_time = 0  # accepts decimal value like 2.3
@@ -99,3 +104,4 @@ def frame_processor(file_path, unknown_counter):
                 for future in futures:
                     unknown_counter = future.result()
     return unknown_counter
+
