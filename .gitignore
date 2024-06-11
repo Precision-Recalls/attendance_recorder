@@ -1,5 +1,11 @@
+/assets/models/vgg_face_weights.h5
+venv
+DSC_3240.JPG
+th (12).jpg
+VID_20210316_093644.mp4
+
 # Byte-compiled / optimized / DLL files
-__pycache__/
+**/__pycache__
 *.py[cod]
 *$py.class
 

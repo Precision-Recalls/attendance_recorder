@@ -1,0 +1,8 @@
+numpy~=1.19.5
+tensorflow~=2.6.2
+mtcnn~=0.1.1
+opencv-python~=4.9.0.80
+Pillow~=8.4.0
+keras~=2.6.0
+scikit-learn~=0.24.2
+matplotlib~=3.3.4
