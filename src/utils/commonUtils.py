@@ -1,4 +1,12 @@
+import datetime
 import time
+
+
+def get_next_reset_time(next_start):
+    dtn = datetime.datetime.now()
+    if dtn >= next_start:
+        next_start += datetime.timedelta(1)  # 1 day
+    return next_start
 
 
 def takeAttendance(name):
@@ -30,4 +38,3 @@ def takeAttendance(name):
             if name not in exclude_names:
                 fs.write(f"\n{name}, {current_time}")
     return today
-
