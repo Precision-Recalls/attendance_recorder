@@ -37,6 +37,13 @@ MANIFEST
 *.manifest
 *.spec
 
+#pycharm files
+.idea/inspectionProfiles/
+.idea/vcs.xml
+.idea/workspace.xml
+
+
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
