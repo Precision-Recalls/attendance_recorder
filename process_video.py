@@ -18,14 +18,22 @@ from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from src.training.train import load_face_embedding_model
 from src.utils.commonUtils import takeAttendance
 
-person_rep = pickle.load(open(r'assets/names_mapping.pkl', 'rb'))
-vgg_face_model_weight_file_path = 'assets/models/vgg_face_weights.h5'
+from src.utils.config_loader import load_config
+
+# Load the configuration
+config = load_config('config.ini')
+
+person_rep_path = config['paths']['person_rep_path']
+person_rep = pickle.load(open(person_rep_path, 'rb'))
+vgg_face_model_weight_file_path = config['paths']['vgg_face_model_weight_path']
 vgg_face_model = load_face_embedding_model(vgg_face_model_weight_file_path)
-classifier_model = load_model('assets/models/face_classifier.h5')
+classifier_model_path = config['paths']['classifier_model_path']
+classifier_model = load_model(classifier_model_path)
 
 next_start = datetime.datetime(2024, 6, 4, 8, 0, 0)
 unknown_counter = 0
 start_time = time.time()
+
 
 # Desired frame rate (in frames per second)
 desired_frame_rate = 3  # Change this to your desired frame rate
