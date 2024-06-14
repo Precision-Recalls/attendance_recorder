@@ -1,40 +1,43 @@
 import datetime
-import time
+import logging
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def get_next_reset_time(next_start):
     dtn = datetime.datetime.now()
     if dtn >= next_start:
-        next_start += datetime.timedelta(1)  # 1 day
+        next_start += datetime.timedelta(days=1)
     return next_start
 
 
-def takeAttendance(name):
-    # It will get the current date
-    today = time.strftime('%d_%m_%Y')
-    # To create a file if it doesn't exists
-    f = open(f'output/attendance_sheet_{today}.csv', 'a')
-    f.close()
+def take_attendance(name, conf_obj):
+    file_extension = conf_obj['attendance-parameters']['file_extension']
+    attendance_file_name_prefix = conf_obj['attendance-parameters']['attendance_file_name_prefix']
 
-    exclude_names = []
+    # Get the current date
+    today = datetime.datetime.now().strftime('%d_%m_%Y')
+    attendance_file_name = f'{attendance_file_name_prefix}_{today}{file_extension}'
 
-    # It will read the CSV file and check if the name
-    # is already present there or not.
-    # If the name doesn't exist there, it'll be added
-    # to a list called 'names'
-    with open(f'output/attendance_sheet_{today}.csv', 'r') as f:
-        data = f.readlines()
-        names = []
-        for line in data:
-            entry = line.split(',')
-            names.append(entry[0])
+    # Create the file if it doesn't exist
+    with open(attendance_file_name, 'a') as f:
+        pass
 
-    # It will check it the name is in the list 'names'
-    # or not. If not then, the name will be added to
-    # the CSV file along with the entering time
-    with open(f'output/attendance_sheet_{today}.csv', 'a') as fs:
-        if name not in names:
-            current_time = time.strftime('%H:%M:%S')
-            if name not in exclude_names:
-                fs.write(f"\n{name}, {current_time}")
+    # Read the CSV file and check if the name is already present
+    try:
+        with open(attendance_file_name, 'r') as f:
+            data = f.readlines()
+            names = {line.split(',')[0].strip() for line in data}
+    except FileNotFoundError:
+        names = set()
+
+    # Check if the name is in the list 'names', if not then add it
+    if name not in names:
+        current_time = datetime.datetime.now().strftime('%H:%M:%S')
+        with open(attendance_file_name, 'a') as f:
+            f.write(f"{name}, {current_time}\n")
+            logger.info(f"Added {name} to the attendance file at {current_time}")
+
     return today

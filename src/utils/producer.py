@@ -3,11 +3,11 @@ import time
 import json
 import random
 
-# Configuration for the Kafka producer
-conf = {
-    'bootstrap.servers': 'localhost:9092',  # Replace with your Kafka broker(s)
-    'client.id': 'python-producer'
-}
+
+# Load the configuration
+config = load_config('config.ini')
+conf = config['kafka_consumer']['conf']
+topic_name = config['kafka']['topic_name']
 
 # Create a Kafka producer
 producer = Producer(**conf)
@@ -34,7 +34,7 @@ try:
         message_str = json.dumps(message)
 
         # Produce the message to the Kafka topic
-        producer.produce('test-topic', key=str(message['timestamp']), value=message_str, callback=delivery_report)
+        producer.produce(topic_name, key=str(message['timestamp']), value=message_str, callback=delivery_report)
 
         # Poll to handle delivery reports (callbacks)
         producer.poll(0)
