@@ -35,17 +35,20 @@ def move_image_files(image_folder, obj_type, image_destination_folder):
 
 def import_image_files(source_image_folder, image_destination_folder):
     for obj in listdir(source_image_folder):
-        obj_path = join(source_image_folder, obj)
-        if isdir(obj_path):
-            move_image_files(obj_path, 'dir', image_destination_folder)
-        else:
-            move_image_files(source_image_folder, 'file', image_destination_folder)
+        try:
+            obj_path = join(source_image_folder, obj)
+            if isdir(obj_path):
+                move_image_files(obj_path, 'dir', image_destination_folder)
+            else:
+                move_image_files(source_image_folder, 'file', image_destination_folder)
+        except Exception as e:
+            logger.error(f"There is some error in image importing :- {e}")
 
 
 def process_files(input_directory, output_directory, person_mapping_filepath=''):
     check_or_create_directory(output_directory)
-
     person_rep = {}
+
     for i, subdir in enumerate(listdir(input_directory)):
         subdir_path = join(input_directory, subdir)
         if not isdir(subdir_path):

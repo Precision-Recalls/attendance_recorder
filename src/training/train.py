@@ -16,6 +16,7 @@ DROPOUT_RATE_1 = 0.5
 DROPOUT_RATE_2 = 0.2
 DROPOUT_RATE_3 = 0.3
 
+
 def faceEmbeddingModel():
     # Define VGG_FACE_MODEL architecture
     model = Sequential([
@@ -60,13 +61,18 @@ def faceEmbeddingModel():
     ])
     return model
 
+
 def load_face_embedding_model(model_weight_file):
-    model = faceEmbeddingModel()
-    # Load VGG Face model weights
-    model.load_weights(model_weight_file)
-    # Remove last Softmax layer and get model up to last flatten layer with outputs 2622 units
-    vgg_face = Model(inputs=model.input, outputs=model.layers[-2].output)
-    return vgg_face
+    try:
+        model = faceEmbeddingModel()
+        # Load VGG Face model weights
+        model.load_weights(model_weight_file)
+        # Remove last Softmax layer and get model up to last flatten layer with outputs 2622 units
+        vgg_face = Model(inputs=model.input, outputs=model.layers[-2].output)
+        return vgg_face
+    except Exception as e:
+        logger.error(f"There is some issue with vgg_face model loading :- {e}")
+
 
 def faceClassificationModel():
     # Softmax regressor to classify images based on encoding
@@ -84,23 +90,26 @@ def faceClassificationModel():
     ])
     return classifier_model
 
+
 def train_face_classifier(x_train, y_train, classifier_model_path):
-    face_clf = faceClassificationModel()
-    face_clf.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(), optimizer='adam', metrics=['accuracy'])
+    try:
+        face_clf = faceClassificationModel()
+        face_clf.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(), optimizer='adam', metrics=['accuracy'])
 
-    # Callbacks for early stopping and saving the best model
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-    model_checkpoint = ModelCheckpoint(classifier_model_path, save_best_only=True, monitor='val_loss')
+        # Callbacks for early stopping and saving the best model
+        early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+        model_checkpoint = ModelCheckpoint(classifier_model_path, save_best_only=True, monitor='val_loss')
 
-    # Fit the Keras model on the dataset
-    face_clf.fit(
-        x_train, y_train,
-        epochs=EPOCHS,
-        batch_size=BATCH_SIZE,
-        validation_split=0.2,
-        callbacks=[early_stopping, model_checkpoint]
-    )
+        # Fit the Keras model on the dataset
+        face_clf.fit(
+            x_train, y_train,
+            epochs=EPOCHS,
+            validation_split=0.2,
+            callbacks=[early_stopping, model_checkpoint]
+        )
 
-    # Evaluate the Keras model
-    _, accuracy = face_clf.evaluate(x_train, y_train)
-    logger.info(f'Accuracy: {accuracy * 100:.2f}%')
+        # Evaluate the Keras model
+        _, accuracy = face_clf.evaluate(x_train, y_train)
+        logger.info(f'Accuracy: {accuracy * 100:.2f}%')
+    except Exception as e:
+        logger.error(f"There is some error in face classifier training :- {e}")

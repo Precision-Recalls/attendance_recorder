@@ -2,6 +2,9 @@ import datetime
 import logging
 
 # Initialize logging
+import os.path
+import pickle
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -11,6 +14,21 @@ def get_next_reset_time(next_start):
     if dtn >= next_start:
         next_start += datetime.timedelta(days=1)
     return next_start
+
+
+def get_pickle_obj(file_path):
+    file_path = os.path.abspath(file_path)
+    # Check if the person_rep_path file exists
+    if os.path.isfile(file_path):
+        try:
+            with open(file_path, 'rb') as f:
+                person_rep = pickle.load(f)
+                logger.info("Person rep/encodings loaded successfully.")
+            return person_rep
+        except Exception as e:
+            logger.error(f"Error loading person rep: {e}")
+    else:
+        logger.info(f"File does not exist: {file_path}")
 
 
 def take_attendance(name, conf_obj):
