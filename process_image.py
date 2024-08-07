@@ -16,8 +16,12 @@ next_start = datetime.datetime(2024, 6, 4, 8, 0, 0)
 
 # Define file paths
 file_paths = [
-    'test/jim_corbett.jpeg',
-    'test/th.jpg'
+    'data_v2/images/amit/amit.jpg',
+    'data_v2/images/Meenakshi/meenakshi.jpg',
+    'data_v2/images/mrinal/mrinal_aug_0_8235.jpg',
+    'data_v2/images/Nishu/IMG_20231228_174323812_AE.jpg',
+    'data_v2/images/sunil/DSC04585.JPG',
+    'data_v2/images/parv/IMG_20231014_140237627.jpg'
 ]
 
 time_array = []
@@ -27,6 +31,7 @@ try:
     for i in range(5):
         # Process images
         image_processor(file_paths)
+        break
         # Measure elapsed time and append to time_array
         elapsed_time = time.time() - start_time
         time_array.append(elapsed_time)

@@ -8,7 +8,7 @@ from src.utils.imageUtils import process_face
 start_time = time.time()
 
 # Creating a VideoCapture object to read the video
-cap = cv2.VideoCapture(r"test/Live by Night Official Trailer 1 (2016) - Ben Affleck Movie.mp4")
+cap = cv2.VideoCapture(r"test/WhatsApp Video 2024-06-20 at 17.45.47.mp4")
 frame_count = 0
 
 try:
@@ -20,7 +20,7 @@ try:
         if not ret:
             break
 
-        if frame_count % 30 == 0:
+        if frame_count % 20 == 0:
             temp_image_file_name = f'frame_{frame_count}.jpg'
             cv2.imwrite(temp_image_file_name, frame)
             process_face(temp_image_file_name)

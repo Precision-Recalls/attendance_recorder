@@ -39,7 +39,8 @@ vgg_face_model_weight_file_path = os.path.abspath(config['paths']['vgg_face_mode
 vgg_face_model = load_face_embedding_model(vgg_face_model_weight_file_path)
 
 classifier_model_path = os.path.abspath(config['paths']['classifier_model_path'])
-classifier_model = load_model(classifier_model_path)
+if os.path.isfile(classifier_model_path):
+    classifier_model = load_model(classifier_model_path)
 
 detector = MTCNN(steps_threshold=[0.80, 0.85, 0.9])
 
@@ -129,8 +130,9 @@ def get_facial_encodings(cropped_file_name):
 
 def get_person_name(embed):
     person = classifier_model.predict(embed)
+    print(f"Person classification probability score are as follows:- {person}")
     name = 'unknown'
-    if (person > 0.9).any():
+    if (person > 0.85).any():
         name = person_rep.get(np.argmax(person))
     return name
 
@@ -139,6 +141,7 @@ def get_person_name(embed):
 def is_match(known_embedding, candidate_embedding, thresh=0.40):
     # calculate distance between embeddings
     score = cosine(known_embedding, candidate_embedding)
+    print(f"------{score}-------")
     return score <= thresh
 
 
@@ -153,17 +156,21 @@ def save_faces(name, face):
 
 def process_face(file_path):
     pixels, results = detect_faces_in_images(file_path)
+    print('face got detected!')
     if pixels is not None and results is not None:
         for result in results:
             random_num = random.randint(15000, 20000)
             cropped_file_name = os.path.join(output_directory, f'{file_prefix}_{random_num}.jpg')
             face = crop_faces(pixels, result, cropped_file_name)
             embed = get_facial_encodings(cropped_file_name)
+            print('embeddings created!')
             os.remove(cropped_file_name)
             name = get_person_name(embed)
+            print(f"------original name is :----{name}-----")
             original_person_embeddings = person_encodings[name]
             matching_flag = is_match(original_person_embeddings, embed)
             name = name if matching_flag else 'unknown'
+            print(f"-------{name}---")
             save_faces(name, face)
 
 

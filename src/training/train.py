@@ -1,8 +1,12 @@
+import pickle
+
 import tensorflow as tf
 from tensorflow.keras.layers import Dropout, Flatten, Activation, Dense, BatchNormalization
 from tensorflow.keras.layers import ZeroPadding2D, Conv2D, MaxPooling2D
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ReduceLROnPlateau
 import logging
 
 # Initialize logging
@@ -74,42 +78,71 @@ def load_face_embedding_model(model_weight_file):
         logger.error(f"There is some issue with vgg_face model loading :- {e}")
 
 
-def faceClassificationModel():
+def faceClassificationModel(num_classes):
     # Softmax regressor to classify images based on encoding
     classifier_model = Sequential([
-        Dense(units=100, kernel_initializer='glorot_uniform', input_shape=(2622,)),
+        # First layer: Dense layer with 512 units, Xavier/Glorot uniform initializer, and input shape of 2622
+        Dense(units=512, kernel_initializer='glorot_uniform', input_shape=(2622,)),
         BatchNormalization(),
-        Activation('tanh'),
+        Activation('relu'),
         Dropout(DROPOUT_RATE_3),
-        Dense(units=10, kernel_initializer='glorot_uniform'),
+
+        # Second layer: Dense layer with 256 units, Xavier/Glorot uniform initializer
+        Dense(units=256, kernel_initializer='glorot_uniform'),
         BatchNormalization(),
-        Activation('tanh'),
+        Activation('relu'),
         Dropout(DROPOUT_RATE_2),
-        Dense(units=6, kernel_initializer='he_uniform'),
+
+        # Third layer: Dense layer with 128 units, Xavier/Glorot uniform initializer
+        Dense(units=128, kernel_initializer='glorot_uniform'),
+        BatchNormalization(),
+        Activation('relu'),
+        Dropout(DROPOUT_RATE_1),
+
+        # Fourth layer: Dense layer with 64 units, Xavier/Glorot uniform initializer
+        Dense(units=64, kernel_initializer='glorot_uniform'),
+        BatchNormalization(),
+        Activation('relu'),
+        Dropout(DROPOUT_RATE_1),
+
+        # Output layer: Dense layer with 9 units, He uniform initializer
+        Dense(units=num_classes, kernel_initializer='he_uniform'),
         Activation('softmax')
     ])
     return classifier_model
 
 
-def train_face_classifier(x_train, y_train, classifier_model_path):
+def compile_face_classifier():
+    face_clf = faceClassificationModel(num_classes=9)
+
+    # Compile the model
+    optimizer = Adam(learning_rate=0.001)
+    face_clf.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+
+    # Summary of the model
+    face_clf.summary()
+    return face_clf
+
+
+def train_face_classifier(x_train, y_train, x_val, y_val, classifier_model_path):
     try:
-        face_clf = faceClassificationModel()
-        face_clf.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(), optimizer='adam', metrics=['accuracy'])
+        model = compile_face_classifier()
 
-        # Callbacks for early stopping and saving the best model
-        early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-        model_checkpoint = ModelCheckpoint(classifier_model_path, save_best_only=True, monitor='val_loss')
+        for epoch in range(EPOCHS):
+            print(f'Epoch {epoch + 1}/{EPOCHS}')
 
-        # Fit the Keras model on the dataset
-        face_clf.fit(
-            x_train, y_train,
-            epochs=EPOCHS,
-            validation_split=0.2,
-            callbacks=[early_stopping, model_checkpoint]
-        )
+            # Train the model on the training data_v2
+            model.fit(
+                x_train, y_train,
+                batch_size=BATCH_SIZE,
+                verbose=1
+            )
 
-        # Evaluate the Keras model
-        _, accuracy = face_clf.evaluate(x_train, y_train)
-        logger.info(f'Accuracy: {accuracy * 100:.2f}%')
+            # Evaluate the model on the validation data_v2
+            val_loss, val_accuracy = model.evaluate(x_val, y_val, verbose=0)
+            print(f'Validation loss: {val_loss:.4f} - Validation accuracy: {val_accuracy:.4f}')
+        # Save the model
+        model.save(classifier_model_path)
+        print(f"Model saved to {classifier_model_path}")
     except Exception as e:
         logger.error(f"There is some error in face classifier training :- {e}")
